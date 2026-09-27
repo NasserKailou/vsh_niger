@@ -1,0 +1,19 @@
+# Interface web Vision Homecare — fichiers statiques (voir docs/14_INTERFACE_WEB.md)
+DirectoryIndex index.html
+Options -Indexes -MultiViews
+
+<IfModule mod_headers.c>
+    # Politique de sécurité stricte : aucun script ni style externe ou en ligne.
+    # Les tuiles de carte OpenStreetMap sont les seules ressources tierces autorisées (étape 9c).
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Referrer-Policy "no-referrer"
+    Header always set X-Frame-Options "DENY"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(self)"
+    # Toujours revalider : une mise à jour du serveur est prise en compte immédiatement.
+    Header set Cache-Control "no-cache"
+</IfModule>
+
+<IfModule mod_mime.c>
+    AddType text/javascript .js
+</IfModule>

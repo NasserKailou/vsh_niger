@@ -1,0 +1,3 @@
+# Seul public/ doit être exposé. Si le serveur pointe par erreur sur ce dossier,
+# tout est refusé (.env, config, storage, database…) ; public/.htaccess rouvre l'accès à public/ uniquement.
+Require all denied

@@ -1,0 +1,26 @@
+Require all granted
+Options -Indexes -MultiViews
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Transmet l'en-tête Authorization à PHP (souvent supprimé par Apache en CGI/FastCGI)
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Racine du site : interface web (cible construite depuis l'URL, quel que soit le dossier d'installation)
+    RewriteCond %{REQUEST_URI} ^(.*/)$
+    RewriteRule ^$ %1app/ [R=302,L]
+
+    # Interface web : fichiers statiques servis tels quels (app/index.html par défaut)
+    RewriteRule ^app(/.*)?$ - [L]
+
+    # Tout ce qui n'est pas un fichier existant passe par le front controller
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# Fichiers cachés (.htaccess, .env…) jamais servis
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
