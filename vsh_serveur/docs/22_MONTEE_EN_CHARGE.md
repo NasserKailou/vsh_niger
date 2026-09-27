@@ -71,8 +71,9 @@ Conditions : MariaDB 10.4 de XAMPP, avec une mémoire tampon (`innodb_buffer_poo
 | ✔ fait | Espace patient mobile sans pull de journal (`/me/patients/…`, cache local chiffré) | Coût par patient indépendant de la base |
 | ✔ fait | Connexion patient liée à l'appareil : 30 jours sans nouveau SMS, push, révocation | Moins de SMS, notifications gratuites |
 | ✔ fait | Notifications par push, SMS seulement en repli (D-011) | Coût SMS maîtrisé |
-| P1 | Index `(created_by, created_at)` sur les 12 tables de contributions et `patients(first_name, last_name)` (migration) | Périmètre et recherche indexés |
-| P1 | Recherche par nom en deux branches `UNION`, 51 résultats, « plus de 50 résultats, précisez » au lieu du total exact | 3 s → 3 ms |
+| ✔ fait | Migration 0018 : index `(created_by, created_at)` sur les 12 tables de contributions, `patients(first_name, last_name)`, `patients(created_at)`, `consultations(started_at)` | Périmètre complet d'un médecin (29 000 dossiers) : **118 ms**, contre 2,4 s |
+| ✔ fait | Recherche par nom en deux branches indexées (`UNION`), total plafonné à 1 000 (« plus de 1 000 résultats, précisez ») | Mesuré sur 1 M de dossiers : « Mo » 2 400 ms → **14 ms** ; « Moussa » → 10 ms ; prénom très courant : 274 ms au pire |
+| ✔ fait | Recherche au fil de la frappe : web (400 ms) et mobile (serveur interrogé dès 3 lettres) | Plus de bouton « Rechercher » à l'accueil |
 | P1 | Périmètre du personnel calculé une fois par synchronisation (table temporaire, ou table `sync_scope` tenue à jour) | Pull d'un appareil à jour : 300 ms → 4 ms |
 | P1 | opcache activé et `innodb_buffer_pool_size` dimensionné en production (04_INSTALLATION) | ×3 à ×10 sur toutes les requêtes |
 | P2 | Compteurs du tableau de bord en table de synthèse ou en cache de 60 s | 3 s → quelques ms |

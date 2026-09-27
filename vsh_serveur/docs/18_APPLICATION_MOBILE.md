@@ -344,7 +344,26 @@ Confidentialité : seules les coordonnées de départ et d'arrivée sont envoyé
 
 Service : par défaut, le serveur public de la FOSSGIS (`routing.openstreetmap.de/routed-car`). Vérifié depuis le poste : un trajet de 2,0 km dans Niamey, avec les vrais noms de rues. En production, prévoir un serveur OSRM propre (carte du Niger, quelques Go, pas de limite d'usage) : `--dart-define=VSH_ROUTING_URL=https://…`.
 
-Limite : les fonds de carte ne sont gardés qu'en mémoire. Hors réseau, une zone jamais affichée reste grise ; le tracé, la direction et la distance restent affichés.
+### Cartes hors ligne (`lib/homecare/tile_prefetch.dart`)
+
+- flutter_map garde les fonds de carte affichés dans un **cache disque** (jusqu'à 1 Go), réutilisé sans réseau.
+- En plus, quand la tournée change et que le réseau est là, les tuiles autour des domiciles des visites ouvertes sont **téléchargées à l'avance** : environ 30 tuiles par domicile, du quartier (zoom 14) à la rue (zoom 17), 250 au plus par passage, tuiles déjà présentes ignorées. Sur place, sans réseau, la carte s'affiche.
+- Les serveurs publics d'OpenStreetMap interdisent le téléchargement massif. D'où la limite, et l'adresse des tuiles configurable (`--dart-define=VSH_TILE_URL=…`) pour un fournisseur de la clinique en production.
+- Tests : `test/tile_prefetch_test.dart` (numéro de tuile, zone couverte, téléchargement unique). Le test a révélé un défaut, corrigé : un serveur de tuiles sans en-tête `Date` faisait échouer l'enregistrement dans le cache.
+
+## 12 bis. Améliorations du 28/09/2026
+
+- **Plantage au toucher d'une notification (corrigé).** L'écran concerné (onglet Rendez-vous, Mon dossier…) était empilé une seconde fois depuis la liste des notifications ; go_router créait alors deux navigations à onglets avec les mêmes clés de page (« Failed assertion: !keyReservation.contains(key) »). Désormais `openLocation` (dans `app_router.dart`) ouvre les pages d'onglet par `go` et les autres par `push`. Personnel et patients sont concernés, pour la liste, les alertes locales et les messages push. Test : `test/patient_navigation_test.dart` (4 notifications, vrai routeur). Ce test a aussi révélé un débordement d'affichage dans « Mon dossier » (« Hors valeurs de référence »), corrigé.
+- **Équipe en approche (patient).** Pendant « Équipe en route », la visite montre la dernière position de l'équipe sur la carte, la distance et l'heure d'arrivée estimée (itinéraire routier, sinon vol d'oiseau), actualisées toutes les 30 s.
+  - Serveur : champ `team_approach` de la vue patient. Seulement pendant ce trajet, jamais le trajet complet ; `null` avant le départ et après l'arrivée (test `HomecareGeoTest::testPatientSeesTheTeamOnlyWhileItIsOnTheWay`).
+- **Inscription dans l'application** (`register_screen.dart`) :
+  - téléphone, code SMS si exigé, identité, mot de passe, adresse facultative ;
+  - le dossier est créé « en attente de validation » et la session s'ouvre aussitôt ;
+  - vérifié sur XAMPP (compte créé, dossier visible dans l'espace patient).
+- **Recherche au fil de la frappe.**
+  - Mobile (personnel) : la recherche serveur part seule dès 3 lettres, avec « N autres dossiers sur le serveur ».
+  - Web (accueil) : recherche automatique 400 ms après la dernière touche ; une réponse plus ancienne n'écrase pas la plus récente.
+  - Possible grâce à la nouvelle recherche indexée (docs/22).
 
 Tests : `test/routing_test.dart` couvre la lecture d'une réponse OSRM et les consignes en français, la prochaine consigne et la distance restante, la sortie d'itinéraire, le cap et les durées. Les images de référence (`test/goldens`) ont été mises à jour pour l'icône du compte et le bouton d'itinéraire.
 
